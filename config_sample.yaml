@@ -1,0 +1,42 @@
+environment:
+- develop
+- staging
+- production
+
+application_setting:
+  ownerEmail: owner@personal.com
+  cloudProvider:
+  - kubernetes
+
+pipeline_setting:
+  default:
+    artifactAccount: artifactoryAccount
+    gitOwner: personal
+    helmRepository: https://myhelm.repo.com/repository
+    maintainer: maintainer
+    notifyEmailAddr: alert@personal.com
+    spinnakerUri: https://spinnaker.personal.com
+  environment:
+    develop:
+      branch: master
+      provider: develop
+      releaseName: develop-release
+      triggerEnabled: "true"
+      valueFile: values.develop.yaml
+    staging:
+      branch: tags
+      provider: staging
+      releaseName: staging-release
+      triggerEnabled: "true"
+      valueFile: values.staging.yaml
+    production:
+      branch: tags
+      provider: production
+      releaseName: production-release
+      triggerEnabled: "false"
+      valueFile: values.production.yaml
+  application:
+    app1:
+      releaseName: app1-release
+    app2.develop:
+      releaseName: app2-release
