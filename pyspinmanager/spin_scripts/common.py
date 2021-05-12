@@ -10,6 +10,7 @@ import os
 import re
 import pyspinmanager
 from copy import deepcopy
+import datetime
 
 pipelineTemplate = 'pipeline.json.j2'
 
@@ -63,6 +64,11 @@ def getAppList(gatewayEndpoint):
     apps = json.loads(runCommand(cmd))
     return pyjq(apps, ".[].name")
 
+def getAppExecutionCount(appName, gatewayEndpoin):
+    cmd = "curl -s %s/applications/%s/executions/search" % (gatewayEndpoin, appName)
+    execution = json.loads(runCommand(cmd))
+    return len(executionCount)
+
 def appExists(appName, gatewayEndpoint, appList=None):
     if not appList:
         appList = getAppList(gatewayEndpoint)
@@ -73,9 +79,37 @@ def createApplication(appName, ownerEmail, cloudProvider, gatewayEndpoint):
     common.runCommand(cmd)
 
 def getPipelineList(appName, gatewayEndpoint):
-    cmd = "spin pipeline list --application %s--gate-endpoint %s" % (appName, gatewayEndpoint)
+    cmd = "spin pipeline list --application %s --gate-endpoint %s" % (appName, gatewayEndpoint)
     pipelines = json.loads(runCommand(cmd))
     return pyjq(pipelines, ".[].name")
+
+def getPipelineTriggerStatus(appName, gatewayEndpoint):
+    result = {}
+    cmd = "spin pipeline list --application %s --gate-endpoint %s" % (appName, gatewayEndpoint)
+    pipelines = json.loads(runCommand(cmd))
+    pipelineNameList = pyjq(pipelines, ".[].name")
+    triggerEnableList = pyjq(pipelines, ".[].triggers[0].enabled")
+    for i, pipeline in enumerate(pipelineNameList):
+        result.update({pipeline: {"triggerEnabled": triggerEnableList[i]}})
+    return result
+
+def getPipelineExecutionStatus(appName, gatewayEndpoint):
+    result = {}
+    cmd = "curl -s %s/applications/%s/executions/search?reverse=true&statuses=RUNNING,SUCCEEDED" % (gatewayEndpoint, appName)
+    executionList =  json.loads(runCommand(cmd))
+    for execution in executionList:
+        endtime = datetime.datetime.fromtimestamp(execution['endTime']/1000)
+        result.update({execution['name']: endtime.strftime('%Y-%m-%d %H:%M:%S')})
+    return result
+
+def getPipelineStatus(appName, gatewayEndpoint):
+    result = {}
+    cmd = "curl -s %s/applications/%s/pipelines?limit=1&statuses=RUNNING,SUCCEEDED" % (gatewayEndpoint, appName)
+    statusList =  json.loads(runCommand(cmd))
+    for status in statusList:
+        endtime = datetime.datetime.fromtimestamp(status['endTime']/1000)
+        result.update({status['name']: {"lastExecutiontime": endtime.strftime('%Y-%m-%d %H:%M:%S')}})
+    return result
 
 def pipelineExists(appName, env, gatewayEndpoint, appList=None):
     if not appList:
@@ -85,7 +119,7 @@ def pipelineExists(appName, env, gatewayEndpoint, appList=None):
     pipelineList = getPipelineList(appName, gatewayEndpoint)
     return (("iac-%s" % env) in pipelineList)
 
-def createPipeline(piplineFile, gatewayEndpoint):
+def createPipeline(pipelineFile, gatewayEndpoint):
     cmd = "spin pipeline save --file %s --gate-endpoint %s" % (pipelineFile, gatewayEndpoint)
     runCommand(cmd)
 

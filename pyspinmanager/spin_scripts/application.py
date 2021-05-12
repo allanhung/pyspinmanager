@@ -17,7 +17,6 @@ from docopt import docopt
 import os
 import pyspinmanager.spin_scripts.common as common
 from tqdm import tqdm
-import json
 
 def scan(args):
     configFile = common.getConfig(args['--gate-endpoint'])
@@ -28,8 +27,8 @@ def scan(args):
     print("scan application from spinnaker api.")
     applist = common.getAppList(args['--gate-endpoint'])
     for app in tqdm(applist):
-        executeCount = json.loads(common.runCommand("curl -s %s/applications/%s/executions/search" % (args['--gate-endpoint'], app)))
-        if len(executeCount):
+        executeCount = common.getAppExcutionCount(app, args['--gate-endpoint'])
+        if executeCount:
             appInUse.append(app)
         else:
             appUnUse.append(app)

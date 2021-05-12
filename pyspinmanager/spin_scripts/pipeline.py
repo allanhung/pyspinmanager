@@ -6,6 +6,7 @@ Pipeline maintaince
 Usage:
   pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-c] [-f] [-g=<GATEEP>]
   pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>)
+  pyspinmanager pipeline status (--app=<APP> | --appkey=<APPKEY>) [-g=<GATEEP>]
 
 Options:
   -h, --help                              Show this screen.
@@ -62,3 +63,17 @@ def sync(args):
             common.render_template(common.read_template(pipelineTemplate), common.generate_pipeline_setting(app, args['--env'], config['pipeline_setting']), pipelineFile)
             common.createPipeline(pipelineFile, args['--gate-endpoint'])
     print("Completed!")
+
+def status(args):
+    tmpDict = {}
+    configFile = common.getConfig(args['--gate-endpoint'])
+    config = common.loadconfig(configFile)
+    appList = config[args['--appkey']] if args['--appkey'] else [args['--app']]
+    for app in tqdm(appList):
+        triggerStatus = common.getPipelineTriggerStatus(app, args['--gate-endpoint'])
+        pipelineStatus = common.getPipelineStatus(app, args['--gate-endpoint'])
+        tmpDict[app] = {}
+        for k, v in triggerStatus.items():
+            v.update(pipelineStatus.get(k, {"lastExecutiontime": None}))
+            tmpDict[app].update({k: v})
+    print(yaml.dump(tmpDict))

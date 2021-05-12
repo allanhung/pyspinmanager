@@ -14,6 +14,7 @@ pipeline_setting:
     gitOwner: personal
     helmRepository: https://myhelm.repo.com/repository
     maintainer: maintainer
+    namespace: default
     notifyEmailAddr: alert@personal.com
     spinnakerUri: https://spinnaker.personal.com
   environment:
