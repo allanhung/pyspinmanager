@@ -40,7 +40,7 @@ def create(args):
     configFile = common.getConfig(args['--gate-endpoint'])
     config = common.loadconfig(configFile)
     appSetting = config['application_setting']
-    if common.appExists(args['--appname']):
+    if common.appExists(args['--appname'], args['--gate-endpoint']):
         print('Application %s already exists!' % args['--appname'])
     else:
         common.createApplication(args['--appname'], appSetting['ownerEmail'], ",".join(appSetting['cloudProvider']), args['--gate-endpoint'])

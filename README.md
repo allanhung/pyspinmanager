@@ -11,6 +11,13 @@ Install [spinnaker cli](https://spinnaker.io/setup/spin/)
 pip install git+https://github.com/allanhung/pyspinmanager.git
 ```
 
+### Run with docker
+```bash
+docker build -t spin .
+docker run -d --name=spin --rm -v $(pwd):/apps spin
+docker exec -ti spin bash
+```
+
 ## Usage
 ### Configure pyspinmanager
 The configuration file doesn't exist yet, after you installpyspinmanager. You need to create it in your working dir.

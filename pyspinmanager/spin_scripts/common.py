@@ -76,7 +76,11 @@ def appExists(appName, gatewayEndpoint, appList=None):
 
 def createApplication(appName, ownerEmail, cloudProvider, gatewayEndpoint):
     cmd = "spin application save --application-name %s --owner-email %s --cloud-providers %s --gate-endpoint %s" % (appName, ownerEmail, cloudProvider, gatewayEndpoint)
-    common.runCommand(cmd)
+    runCommand(cmd)
+
+def getPipeline(appName, env, gatewayEndpoint):
+    cmd = "spin pipeline get --application %s --name %s --gate-endpoint %s" % (appName, ("iac-%s" % env), gatewayEndpoint)
+    return json.loads(runCommand(cmd))
 
 def getPipelineList(appName, gatewayEndpoint):
     cmd = "spin pipeline list --application %s --gate-endpoint %s" % (appName, gatewayEndpoint)

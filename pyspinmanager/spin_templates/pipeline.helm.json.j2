@@ -9,7 +9,7 @@
       "defaultArtifact": {
         "artifactAccount": "{{ artifactAccount }}",
         "customKind": true,
-        "reference": "{{ helmRepository }}/${trigger['buildInfo']['name']}/${trigger['buildInfo']['scm'][0]['sha1']}/${trigger['buildInfo']['scm'][0]['sha1']}.tgz",
+        "reference": "{{ helmRepository }}/${trigger['buildInfo']['name']}-${trigger['buildInfo']['scm'][0]['sha1']}.tgz",
         "type": "http/file"
       },
       "displayName": "helm-package",
@@ -17,7 +17,7 @@
       "matchArtifact": {
         "artifactAccount": "{{ artifactAccount }}",
         "customKind": true,
-        "reference": "{{ helmRepository }}/${trigger['buildInfo']['name']}/${trigger['buildInfo']['scm'][0]['sha1']}/${trigger['buildInfo']['scm'][0]['sha1']}.tgz",
+        "reference": "{{ helmRepository }}/${trigger['buildInfo']['name']}-${trigger['buildInfo']['scm'][0]['sha1']}.tgz",
         "type": "http/file"
       },
       "useDefaultArtifact": true,
@@ -90,9 +90,7 @@
       "name": "Bake-{{ env }}",
       "namespace": "{{ namespace }}",
       "outputName": "{{ releaseName }}",
-      "overrides": {
-        "global.kubeVersionOverride": "{{ kubeVersion }}",
-      },
+      "overrides": {},
       "refId": "1",
       "templateRenderer": "HELM3",
       "type": "bakeManifest"

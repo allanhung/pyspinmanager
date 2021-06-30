@@ -17,6 +17,7 @@ pipeline_setting:
     namespace: default
     notifyEmailAddr: alert@personal.com
     spinnakerUri: https://spinnaker.personal.com
+    kubeVersion: 1.16.9
   environment:
     develop:
       branch: master
@@ -24,6 +25,7 @@ pipeline_setting:
       releaseName: develop-release
       triggerEnabled: "true"
       valueFile: values.develop.yaml
+      kubeVersion: 1.18.8
     staging:
       branch: tags
       provider: staging
