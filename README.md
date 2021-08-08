@@ -1,5 +1,4 @@
 # pyspinmanager
-
 Maintain spinnaker application and pipeline
 
 ## Install
@@ -150,22 +149,32 @@ It will generate application list into config with section appInUse and appUnUse
 * create pipeline with given application name (--app)
 * create pipeline with given application list from key config (--appkey)
 ```bash
-pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-c] [-f] [-g=<GATEEP>]
+Usage:
+  pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
 
 Options:
+  -h, --help                              Show this screen.
   --env=<ENV>                             Pipeline environment
   --app=<APP>                             Pipeline application name
   --appkey=<APPKEY>                       Pipeline application name list from key in config
   -c, --create-application                Create application if not exists
   -f, --force-update                      Force create/update pipeline
+  -t=<TEMPLATE>, --template=<TEMPLATE>    Specify pipeline template
   -g=<GATEEP>, --gate-endpoint=<GATEEP>   Spinnaker gate endpoint [default http://localhost:8084]
-```
+  --cookieheader=<COOKIEHEADER>           Configure cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2)
+```  
+
 ### Sync pipeline
 * It will get application list (appInUse) from source spinnaker server and create pipeline under the application in destination spinnaker server with destination server config.
 ```bash
-pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>)
+pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>) [--src-cookieheader=<SRCCOOKIEHEADER>] [--dst-cookieheader=<DSTCOOKIEHEADER>]
 
 Options:
   --src-gate-endpoint=<SRCGATEEP>         Source spinnaker gate endpoint
+  --src-cookieheader=<COOKIEHEADER>       Source cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2)
   --dst-gate-endpoint=<DSTGATEEP>         Destination spinnaker gate endpoint
+  --dst-cookieheader=<COOKIEHEADER>       Destination cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2)
 ```
+
+### Reference
+* [Okta SAML to authenticate with Spinnaker](https://github.com/spinnaker/spin/pull/205)

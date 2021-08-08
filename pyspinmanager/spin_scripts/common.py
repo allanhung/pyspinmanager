@@ -59,37 +59,49 @@ def getConfig(gatewayEndpoint):
     domain = re.findall('://([\w\-\.]+)', gatewayEndpoint)[0]
     return os.path.join(os.getcwd(), "config_%s.yaml" % domain)
 
-def getAppList(gatewayEndpoint):
+def getAppList(gatewayEndpoint, cookieheader=None):
     cmd = "spin application list --gate-endpoint %s" % gatewayEndpoint
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     apps = json.loads(runCommand(cmd))
     return pyjq(apps, ".[].name")
 
-def getAppExecutionCount(appName, gatewayEndpoin):
+def getAppExecutionCount(appName, gatewayEndpoint, cookieheader=None):
     cmd = "curl -s %s/applications/%s/executions/search" % (gatewayEndpoin, appName)
+    if cookieheader:
+        cmd += " -H 'cookie: %s'" % cookieheader
     execution = json.loads(runCommand(cmd))
     return len(executionCount)
 
-def appExists(appName, gatewayEndpoint, appList=None):
+def appExists(appName, gatewayEndpoint, cookieheader=None, appList=None):
     if not appList:
-        appList = getAppList(gatewayEndpoint)
+        appList = getAppList(gatewayEndpoint, cookieheader)
     return (appName in appList)
 
-def createApplication(appName, ownerEmail, cloudProvider, gatewayEndpoint):
+def createApplication(appName, ownerEmail, cloudProvider, gatewayEndpoint, cookieheader=None):
     cmd = "spin application save --application-name %s --owner-email %s --cloud-providers %s --gate-endpoint %s" % (appName, ownerEmail, cloudProvider, gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     runCommand(cmd)
 
-def getPipeline(appName, env, gatewayEndpoint):
+def getPipeline(appName, env, gatewayEndpoint, cookieheader=None):
     cmd = "spin pipeline get --application %s --name %s --gate-endpoint %s" % (appName, ("iac-%s" % env), gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     return json.loads(runCommand(cmd))
 
-def getPipelineList(appName, gatewayEndpoint):
+def getPipelineList(appName, gatewayEndpoint, cookieheader=None):
     cmd = "spin pipeline list --application %s --gate-endpoint %s" % (appName, gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     pipelines = json.loads(runCommand(cmd))
     return pyjq(pipelines, ".[].name")
 
-def getPipelineTriggerStatus(appName, gatewayEndpoint):
+def getPipelineTriggerStatus(appName, gatewayEndpoint, cookieheader=None):
     result = {}
     cmd = "spin pipeline list --application %s --gate-endpoint %s" % (appName, gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     pipelines = json.loads(runCommand(cmd))
     pipelineNameList = pyjq(pipelines, ".[].name")
     triggerEnableList = pyjq(pipelines, ".[].triggers[0].enabled")
@@ -97,34 +109,40 @@ def getPipelineTriggerStatus(appName, gatewayEndpoint):
         result.update({pipeline: {"triggerEnabled": triggerEnableList[i]}})
     return result
 
-def getPipelineExecutionStatus(appName, gatewayEndpoint):
+def getPipelineExecutionStatus(appName, gatewayEndpoint, cookieheader=None):
     result = {}
     cmd = "curl -s %s/applications/%s/executions/search?reverse=true&statuses=RUNNING,SUCCEEDED" % (gatewayEndpoint, appName)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     executionList =  json.loads(runCommand(cmd))
     for execution in executionList:
         endtime = datetime.datetime.fromtimestamp(execution['endTime']/1000)
         result.update({execution['name']: endtime.strftime('%Y-%m-%d %H:%M:%S')})
     return result
 
-def getPipelineStatus(appName, gatewayEndpoint):
+def getPipelineStatus(appName, gatewayEndpoint, cookieheader=None):
     result = {}
     cmd = "curl -s %s/applications/%s/pipelines?limit=1&statuses=RUNNING,SUCCEEDED" % (gatewayEndpoint, appName)
+    if cookieheader:
+        cmd += " -H 'cookie: %s'" % cookieheader
     statusList =  json.loads(runCommand(cmd))
     for status in statusList:
         endtime = datetime.datetime.fromtimestamp(status['endTime']/1000)
         result.update({status['name']: {"lastExecutiontime": endtime.strftime('%Y-%m-%d %H:%M:%S')}})
     return result
 
-def pipelineExists(appName, env, gatewayEndpoint, appList=None):
+def pipelineExists(appName, env, gatewayEndpoint, cookieheader=None, appList=None):
     if not appList:
-        appList = getAppList(gatewayEndpoint)
+        appList = getAppList(gatewayEndpoint, cookieheader)
     if appName not in appList:
         return False
-    pipelineList = getPipelineList(appName, gatewayEndpoint)
+    pipelineList = getPipelineList(appName, gatewayEndpoint, cookieheader)
     return (("iac-%s" % env) in pipelineList)
 
-def createPipeline(pipelineFile, gatewayEndpoint):
+def createPipeline(pipelineFile, gatewayEndpoint, cookieheader=None):
     cmd = "spin pipeline save --file %s --gate-endpoint %s" % (pipelineFile, gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
     runCommand(cmd)
 
 def generate_pipeline_setting(appName, env, config):

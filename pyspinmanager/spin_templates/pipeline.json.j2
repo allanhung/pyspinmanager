@@ -92,6 +92,12 @@
       "outputName": "{{ releaseName }}",
       "overrides": {
         "global.kubeVersionOverride": "{{ kubeVersion }}"
+        {%- if vaultpath is defined %}
+        ,"global.vaultpath": "{{ vaultpath }}"
+        {%- endif %}
+        {%- if globalnamespace is defined %}
+        ,"global.namespace": "{{ globalnamespace }}"
+        {%- endif %}
       },
       "refId": "1",
       "templateRenderer": "HELM3",

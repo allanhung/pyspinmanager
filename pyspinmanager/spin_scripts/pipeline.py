@@ -4,10 +4,10 @@
 Pipeline maintaince
 
 Usage:
-  pyspinmanager pipeline get (--env=<ENV>) (--app=<APP>) [-o] [-g=<GATEEP>]
-  pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>]
-  pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>)
-  pyspinmanager pipeline status (--app=<APP> | --appkey=<APPKEY>) [-g=<GATEEP>]
+  pyspinmanager pipeline get (--env=<ENV>) (--app=<APP>) [-o] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
+  pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
+  pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>) [--src-cookieheader=<SRCCOOKIEHEADER>] [--dst-cookieheader=<DSTCOOKIEHEADER>]
+  pyspinmanager pipeline status (--app=<APP> | --appkey=<APPKEY>) [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
 
 Options:
   -h, --help                              Show this screen.
@@ -19,8 +19,11 @@ Options:
   -t=<TEMPLATE>, --template=<TEMPLATE>    Specify pipeline template
   -o, --output                            output to file
   -g=<GATEEP>, --gate-endpoint=<GATEEP>   Spinnaker gate endpoint [default http://localhost:8084]
+  --cookieheader=<COOKIEHEADER>           Configure cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2) 
   --src-gate-endpoint=<SRCGATEEP>         Source spinnaker gate endpoint
+  --src-cookieheader=<COOKIEHEADER>       Source cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2) 
   --dst-gate-endpoint=<DSTGATEEP>         Destination spinnaker gate endpoint
+  --dst-cookieheader=<COOKIEHEADER>       Destination cookie headers for gate client as comma separated list (e.g. key1=value1,key2=value2) 
 """
 
 from docopt import docopt
@@ -41,19 +44,19 @@ def create(args):
     else:
       pipelineTemplate = os.path.join(common.getTemplateDir(), common.pipelineTemplate)
     appList = config[args['--appkey']] if args['--appkey'] else [args['--app']]
-    currentAppList = common.getAppList(args['--gate-endpoint'])
+    currentAppList = common.getAppList(args['--gate-endpoint'], args['--cookieheader'])
     for app in tqdm(appList):
-        if args['--force-update'] or not common.pipelineExists(app, args['--env'], args['--gate-endpoint'], currentAppList):
-            if args['--create-application'] and not common.appExists(app, args['--gate-endpoint'], currentAppList):
-                common.createApplication(app, appSetting['ownerEmail'], ",".join(appSetting['cloudProvider']), args['--gate-endpoint'])
+        if args['--force-update'] or not common.pipelineExists(app, args['--env'], args['--gate-endpoint'], args['--cookieheader'], currentAppList):
+            if args['--create-application'] and not common.appExists(app, args['--gate-endpoint'], args['--cookieheader'], currentAppList):
+                common.createApplication(app, appSetting['ownerEmail'], ",".join(appSetting['cloudProvider']), args['--gate-endpoint'], args['--cookieheader'])
             pipelineFile = os.path.join(os.getcwd(), "%s_%s.json" % (app, args['--env']))
             common.render_template(common.read_template(pipelineTemplate), common.generate_pipeline_setting(app, args['--env'], config['pipeline_setting']), pipelineFile)
-            common.createPipeline(pipelineFile, args['--gate-endpoint'])
+            common.createPipeline(pipelineFile, args['--gate-endpoint'], args['--cookieheader'])
         else:
             print("Skip pipeline %s in application %s due to exists!" % ("iac-%s" % args['--env'], app))
 
 def get(args):
-    pipleineContext = common.getPipeline(args['--app'], args['--env'], args['--gate-endpoint'])
+    pipleineContext = common.getPipeline(args['--app'], args['--env'], args['--gate-endpoint'], args['--cookieheader'])
     if args['--output']:
       with open("%s-%s.json" % (args['--app'], args['--env']), "w") as write_file:
         json.dump(pipleineContext, write_file, indent=2)
@@ -65,19 +68,19 @@ def sync(args):
     dstConfigFile = common.getConfig(args['--dst-gate-endpoint'])
     srcConfig = common.loadconfig(srcConfigFile)
     srcAppInUse = srcConfig.get("appInUse", [])
-    dstAppList = common.getAppList(args['--dst-gate-endpoint'])
+    dstAppList = common.getAppList(args['--dst-gate-endpoint'], args['--dst-cookieheader'])
     dstEnvList = dstconfig["environment"]
     dstAppSetting = dstconfig["application_setting"]
     notExistApp = numpy.setdiff1d(srcAppInUse, dstAppList)
     print('Create non exist application in %s' % args['--dst-gate-endpoint'])
     for app in tqdm(notExistApp):
-        common.createApplication(app, srcAppSetting['ownerEmail'], ",".join(srcAppSetting['cloudProvider']), args['--gate-endpoint'])
+        common.createApplication(app, srcAppSetting['ownerEmail'], ",".join(srcAppSetting['cloudProvider']), args['--dst-gate-endpoint'], args['--dst-cookieheader'])
     print('Create pipeline in %s' % args['--dst-gate-endpoint'])
     for app in tqdm(srcAppInUse):
         for env in dstEnvList:
             pipelineFile = os.path.join(os.getcwd(), "%s_%s.json" % (app, args['--env']))
             common.render_template(common.read_template(pipelineTemplate), common.generate_pipeline_setting(app, args['--env'], config['pipeline_setting']), pipelineFile)
-            common.createPipeline(pipelineFile, args['--gate-endpoint'])
+            common.createPipeline(pipelineFile, args['--dst-gate-endpoint'], args['--dst-cookieheader'])
     print("Completed!")
 
 def status(args):
@@ -86,8 +89,8 @@ def status(args):
     config = common.loadconfig(configFile)
     appList = config[args['--appkey']] if args['--appkey'] else [args['--app']]
     for app in tqdm(appList):
-        triggerStatus = common.getPipelineTriggerStatus(app, args['--gate-endpoint'])
-        pipelineStatus = common.getPipelineStatus(app, args['--gate-endpoint'])
+        triggerStatus = common.getPipelineTriggerStatus(app, args['--gate-endpoint'], args['--cookieheader'])
+        pipelineStatus = common.getPipelineStatus(app, args['--gate-endpoint'], args['--cookieheader'])
         tmpDict[app] = {}
         for k, v in triggerStatus.items():
             v.update(pipelineStatus.get(k, {"lastExecutiontime": None}))
