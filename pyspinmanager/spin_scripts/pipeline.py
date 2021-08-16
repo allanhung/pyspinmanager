@@ -6,6 +6,7 @@ Pipeline maintaince
 Usage:
   pyspinmanager pipeline get (--env=<ENV>) (--app=<APP>) [-o] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
   pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
+  pyspinmanager pipeline delete (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
   pyspinmanager pipeline sync (--src-gate-endpoint=<SRCGATEEP>) (--dst-gate-endpoint=<DSTGATEEP>) [--src-cookieheader=<SRCCOOKIEHEADER>] [--dst-cookieheader=<DSTCOOKIEHEADER>]
   pyspinmanager pipeline status (--app=<APP> | --appkey=<APPKEY>) [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
 
@@ -54,6 +55,17 @@ def create(args):
             common.createPipeline(pipelineFile, args['--gate-endpoint'], args['--cookieheader'])
         else:
             print("Skip pipeline %s in application %s due to exists!" % ("iac-%s" % args['--env'], app))
+
+def delete(args):
+    configFile = common.getConfig(args['--gate-endpoint'])
+    config = common.loadconfig(configFile)
+    appList = config[args['--appkey']] if args['--appkey'] else [args['--app']]
+    currentAppList = common.getAppList(args['--gate-endpoint'], args['--cookieheader'])
+    for app in tqdm(appList):
+        if common.pipelineExists(app, args['--env'], args['--gate-endpoint'], args['--cookieheader'], currentAppList):
+            common.deletePipeline(app, "iac-%s" % args['--env'], args['--gate-endpoint'], args['--cookieheader'])
+        else:
+            print("Skip delete pipeline due to application %s or pipeline %s not exists!" % (app, "iac-%s" % args['--env']))
 
 def get(args):
     pipleineContext = common.getPipeline(args['--app'], args['--env'], args['--gate-endpoint'], args['--cookieheader'])

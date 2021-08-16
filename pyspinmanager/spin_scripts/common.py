@@ -145,6 +145,12 @@ def createPipeline(pipelineFile, gatewayEndpoint, cookieheader=None):
         cmd += " --default-headers Cookie=%s" % cookieheader
     runCommand(cmd)
 
+def deletePipeline(applicationName, pipelineName, gatewayEndpoint, cookieheader=None):
+    cmd = "spin pipeline delete -a %s -n %s --gate-endpoint %s" % (applicationName, pipelineName, gatewayEndpoint)
+    if cookieheader:
+        cmd += " --default-headers Cookie=%s" % cookieheader
+    runCommand(cmd)
+
 def generate_pipeline_setting(appName, env, config):
     context = deepcopy(config.get('default', {}))
     context.update(config.get('environment', {}).get(env, {}))

@@ -45,6 +45,18 @@
   "keepWaitingPipelines": false,
   "lastModifiedBy": "{{ maintainer }}",
   "notifications": [
+    {%- if notifyTeamsWebhook is defined %}
+    {
+      "address": "{{ notifyTeamsWebhook }}",
+      "level": "pipeline",
+      "type": "microsoftteams",
+      "when": [
+        "pipeline.starting",
+        "pipeline.complete",
+        "pipeline.failed"
+      ]
+    }
+    {%- else %}
     {
       "address": "{{ notifyEmailAddr }}",
       "cc": "",
@@ -58,6 +70,7 @@
         "pipeline.starting"
       ]
     }
+    {%- endif %}
   ],
   "stages": [
     {
