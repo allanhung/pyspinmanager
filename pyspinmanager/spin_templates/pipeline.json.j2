@@ -51,7 +51,6 @@
       "level": "pipeline",
       "type": "microsoftteams",
       "when": [
-        "pipeline.starting",
         "pipeline.complete",
         "pipeline.failed"
       ]
@@ -110,6 +109,11 @@
         {%- endif %}
         {%- if globalnamespace is defined %}
         ,"global.namespace": "{{ globalnamespace }}"
+        {%- endif %}
+        {%- if valuesOverrides is defined %}
+          {%- for key, value in valuesOverrides.items() %}
+        ,"{{ key }}": "{{ value }}"
+          {%- endfor %}
         {%- endif %}
       },
       "refId": "1",
