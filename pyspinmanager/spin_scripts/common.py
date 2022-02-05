@@ -84,8 +84,8 @@ def createApplication(appName, ownerEmail, cloudProvider, gatewayEndpoint, cooki
         cmd += " --default-headers Cookie=%s" % cookieheader
     runCommand(cmd)
 
-def getPipeline(appName, env, gatewayEndpoint, cookieheader=None):
-    cmd = "spin pipeline get --application %s --name %s --gate-endpoint %s" % (appName, ("iac-%s" % env), gatewayEndpoint)
+def getPipeline(appName, pipelineName, gatewayEndpoint, cookieheader=None):
+    cmd = "spin pipeline get --application %s --name %s --gate-endpoint %s" % (appName, pipelineName, gatewayEndpoint)
     if cookieheader:
         cmd += " --default-headers Cookie=%s" % cookieheader
     return json.loads(runCommand(cmd))
@@ -131,13 +131,13 @@ def getPipelineStatus(appName, gatewayEndpoint, cookieheader=None):
         result.update({status['name']: {"lastExecutiontime": endtime.strftime('%Y-%m-%d %H:%M:%S')}})
     return result
 
-def pipelineExists(appName, env, gatewayEndpoint, cookieheader=None, appList=None):
+def pipelineExists(appName, pipelineName, gatewayEndpoint, cookieheader=None, appList=None):
     if not appList:
         appList = getAppList(gatewayEndpoint, cookieheader)
     if appName not in appList:
         return False
     pipelineList = getPipelineList(appName, gatewayEndpoint, cookieheader)
-    return (("iac-%s" % env) in pipelineList)
+    return (pipelineName in pipelineList)
 
 def createPipeline(pipelineFile, gatewayEndpoint, cookieheader=None):
     cmd = "spin pipeline save --file %s --gate-endpoint %s" % (pipelineFile, gatewayEndpoint)

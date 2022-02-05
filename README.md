@@ -147,16 +147,16 @@ It will generate application list into config with section appInUse and appUnUse
  
 ### Create pipeline
 * create pipeline with given application name (--app)
-* create pipeline with given application list from key config (--appkey)
+* create pipeline with given application list from applist config (--applist)
 ```bash
 Usage:
-  pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --appkey=<APPKEY>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
+  pyspinmanager pipeline create (--env=<ENV>) (--app=<APP> | --applist=<APPLIST>) [-t=<TEMPLATE>] [-c] [-f] [-g=<GATEEP>] [--cookieheader=<COOKIEHEADER>]
 
 Options:
   -h, --help                              Show this screen.
   --env=<ENV>                             Pipeline environment
   --app=<APP>                             Pipeline application name
-  --appkey=<APPKEY>                       Pipeline application name list from key in config
+  --applist=<APPLIST>                     Pipeline application name list from applist in config
   -c, --create-application                Create application if not exists
   -f, --force-update                      Force create/update pipeline
   -t=<TEMPLATE>, --template=<TEMPLATE>    Specify pipeline template

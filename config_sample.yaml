@@ -41,5 +41,8 @@ pipeline_setting:
   application:
     app1:
       releaseName: app1-release
+    app1.env:
+      valuesOverrides:
+        'rabbitmq.podAnnotations.vault\\.security\\.banzaicloud\\.io/vault-path': my-vault-path
     app2.develop:
       releaseName: app2-release
